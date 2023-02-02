@@ -1,36 +1,117 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Expense tracker</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
     <div class="container">
-        <center class="expense-tracker"><b>Expense tracker</b></center>
-         <form id="myForm" class="form">
-        <div class="border border-4 m-auto">
-        <label>Choose expense Amt(₹)</label><br>
-        <input type="number" id="expenseAmt" style="width: 30%;" placeholder="Enter Expense Amt" required><br>
-        <label>Choose description</label><br>
-        <input type="text" id="description" style="width: 30%;" placeholder="Enter Descprition" required><br>
-        <label>Choose a category</label><br>
-        <select id="expense" required>
-            <option value="none" selected disabled hidden>Select an Option</option>
-         <option value="Fuel">Fuel</option>
-         <option value="Food">Food</option>
-         <option value="Travel">Travel</option>
-         <option value="Other">Other</option>
-        </select><br><br>
-        <button>Add Expense</button>
-    </div>
-        <ul class="list-group-item" id="items"> 
-        </ul>
-    </form>
+        <center class="expense-tracker"><b>Sellers Admin Page</b></center>
+        <form id="myForm" class="form">
+            <div class="border border-4 m-auto">
+                <label>Selling Price(₹)</label><br>
+                <input type="number" id="price" style="width: 30%;" placeholder="Enter Expense Amt" required><br>
+                <label>Product Name</label><br>
+                <input type="text" id="product" style="width: 30%;" placeholder="Enter Descprition" required><br>
+                <label>Choose a category</label><br>
+                <select id="category" required>
+                    <option value="none" selected disabled hidden>Select an Option</option>
+                    <option value="Food">Food</option>
+                    <option value="Electronics">Electronics</option>
+                    <option value="Skin Care">Skin Care</option>
+                    <option value="Other">Other</option>
+                </select><br><br>
+                <button>Add Expense</button>
+            </div>
+            <ul class="list-group-item" id="items">
+            </ul>
+        </form>
 
-    <script src="main.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.2.3/axios.min.js"></script>
+        <script>
+
+
+            var form = document.getElementById('myForm')
+            var userlist = document.getElementById('items')
+
+            let amount = document.getElementById('price')
+            let description = document.getElementById('product')
+            let category= document.getElementById('category')
+
+            form.addEventListener('submit', (e) => {
+                e.preventDefault()
+                var obj = {
+                    amount: amount.value,
+                    description: description.value,
+                    category: category.value
+                }
+
+                axios.post('https://crudcrud.com/api/c06b8ec6aa6245f593a24895d5891cfa/expense_tracker', obj)
+                    .then((res) => {
+                        showUserOnScreen(res.data)
+                    })
+                    .catch((err) => {
+                        console.log(err)
+                    })
+                // amount.value = "";
+                // description.value = "";
+                // console.log(description.value)
+                document.getElementById('myForm').reset()
+                
+            })
+
+            window.addEventListener("DOMContentLoaded", () => {
+                const data = axios.get("https://crudcrud.com/api/c06b8ec6aa6245f593a24895d5891cfa/expense_tracker")
+                    .then((res) => {
+                        for (let i = 0; i < res.data.length; i++) {
+                            showUserOnScreen(res.data[i])
+                        }
+                        console.log(res)
+                    })
+                    .catch((err) => {
+                        console.log(err)
+                    })
+                console.log(data)
+
+            })
+
+            function showUserOnScreen(obj) {
+                const child = `<li id="${obj._id}">${obj.amount}-${obj.description}-${obj.category}
+                                <button onClick='deleteItem("${obj._id}")'> Delete </button>
+                                <button onClick='editItem("${obj.amount}","${obj.description}","${obj.category}","${obj._id}")'> Edit </button><li>`
+                userlist.innerHTML = userlist.innerHTML + child
+            }
+
+
+            function deleteItem(userId) {
+                axios.delete(`https://crudcrud.com/api/c06b8ec6aa6245f593a24895d5891cfa/expense_tracker/${userId}`)
+                    .then((res) => {
+                        userlist.remove(res)
+                    })
+                    .catch((err) => {
+                        console.log(err)
+                    })
+                localStorage.removeItem(userId)
+                const child = document.getElementById(userId)
+                console.log(child)
+
+                userlist.removeChild(child)
+            }
+            function editItem(price, content, choice, userId) {
+                amount.value = price;
+                description.value = content;
+                category.value = choice;
+                deleteItem(userId)
+                console.log(amount, description, category)
+                console.log(price, content, choice)
+            }
+        </script>
 </body>
 </html>
